@@ -9,10 +9,11 @@
 	<Name>HardScale</Name>
 	<Author>渔夫lotsofone</Author> <!-- FIX: Insert your name here. -->
 	<!-- Major.Minor.Build -->
-	<Version>0.0.1</Version>
+	<Version>0.0.2</Version>
 	
 	<Description>
-Used to scale blocks. Able to scale multiple blocks together. <!-- FIX: Insert a short description here. -->
+Used to scale blocks. Able to scale multiple blocks together.
+Select some blocks with advanced building to get started. Not compatible with EasyScale since we both operate scaling.
 	</Description>
 	
 	<!-- Square icon of the mod. Texture defined in the Resources section.

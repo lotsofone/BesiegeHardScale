@@ -120,7 +120,7 @@ namespace HardScale
                 GUILayout.Label("scale by value");
                 GUILayout.BeginHorizontal();
                 aScaleText = GUILayout.TextField(aScaleText);
-                if (GUILayout.Button("执行"))
+                if (GUILayout.Button("Execute"))
                 {
                     try
                     {
