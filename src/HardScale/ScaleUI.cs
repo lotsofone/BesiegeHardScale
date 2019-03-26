@@ -57,6 +57,7 @@ namespace HardScale
             if (!showGUI)
             {
                 lastMouseDown = false;
+                UICought = false;
             }
 
             if (count > 1)
@@ -103,7 +104,7 @@ namespace HardScale
                 aScale = GUILayout.HorizontalSlider(aScale, 0.5f, 2f, GUILayout.Width(300));
                 GUILayout.Label("scale by slider(0.1-10)");
                 aScale = GUILayout.HorizontalSlider(aScale, 0.1f, 10f, GUILayout.Width(300));
-                if (lastMouseDown)
+                if (lastMouseDown && aScale != 1)
                     DoMultiScale(aScale);
                 GUILayout.Label("scale by value");
                 GUILayout.BeginHorizontal();
@@ -154,9 +155,13 @@ namespace HardScale
             GUILayout.EndVertical();
             GUI.DragWindow();
         }
+        bool UICought = false;
         void MouseDown()//从鼠标按下开始记录
         {
             if (!ShouldShowGUI()) return;
+            if (!this.windowRect.Contains(new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y))) return;
+
+            UICought = true;
             LogPreState();
         }
         void LogPreState()
@@ -175,8 +180,9 @@ namespace HardScale
         }
         void MouseUp()
         {
-            if (!ShouldShowGUI()) return;
+            if (!UICought) return;
             UpdatePostState();
+            UICought = false;
         }
         void UpdatePostState()
         {
