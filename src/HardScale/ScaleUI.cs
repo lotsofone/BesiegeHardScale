@@ -83,6 +83,9 @@ namespace HardScale
             minSingle = singleScale * 0.1f;
         }
 
+        float lastSnap = 0.05f;
+        string snap = "0.05";
+
         float aScale = 1;
         string aScaleText = "1";
         Vector3 singleScale, maxSingle, minSingle;
@@ -98,13 +101,28 @@ namespace HardScale
                 else MouseUp();
             }
             GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("snap to");
+            snap = GUILayout.TextField(snap, GUILayout.Width(100));
+            try
+            {
+                float newSnap = Convert.ToSingle(snap);
+                if (newSnap < 0) newSnap = 0; lastSnap = newSnap;
+            }
+            catch (Exception) { }
+            GUILayout.Label(lastSnap.ToString(), GUILayout.Width(100));
+            GUILayout.EndHorizontal();
             if (multiScale)
             {
                 GUILayout.Label("scale by slider(0.5-2)");
                 aScale = GUILayout.HorizontalSlider(aScale, 0.5f, 2f, GUILayout.Width(300));
                 GUILayout.Label("scale by slider(0.1-10)");
                 aScale = GUILayout.HorizontalSlider(aScale, 0.1f, 10f, GUILayout.Width(300));
-                if (lastMouseDown && aScale != 1)
+                if (UICought && lastSnap > 0.0001f)
+                {
+                    aScale = 1+lastSnap*(Mathf.Round((aScale - 1) / lastSnap));
+                }
+                if(UICought && originalScales.Count>0)
                     DoMultiScale(aScale);
                 GUILayout.Label("scale by value");
                 GUILayout.BeginHorizontal();
@@ -115,7 +133,8 @@ namespace HardScale
                     {
                         float multiplier = Convert.ToSingle(aScaleText);
                         LogPreState();
-                        DoMultiScale(multiplier);
+                        aScale = multiplier;
+                        DoMultiScale(aScale);
                         UpdatePostState();
                     }
                     catch (Exception) { }
@@ -124,15 +143,32 @@ namespace HardScale
             }
             else//single scale
             {
-                var bb = (BlockBehaviour)AdvancedBlockEditor.Instance.selectionController.Selection[0];
-                singleScale = bb.transform.localScale;
+                if (AdvancedBlockEditor.Instance.selectionController.Selection.Count > 0)
+                {
+                    var bb = (BlockBehaviour)AdvancedBlockEditor.Instance.selectionController.Selection[0];
+                    singleScale = bb.transform.localScale;
+                }
+                
                 if (!lastMouseDown)
                 {
-                    minSingle = singleScale * 0.1f; maxSingle = singleScale * 3;
+                    minSingle = singleScale * 0.1f;
+                    maxSingle = singleScale * 3;
+                    for (int i=0; i<3; i++)
+                    {
+                        if (maxSingle[i] < 0.1f) maxSingle[i] = 0.1f;
+                    }
                 }
                 singleScale[0] = SingleScaleSlider(singleScale[0], minSingle[0], maxSingle[0], "x");
                 singleScale[1] = SingleScaleSlider(singleScale[1], minSingle[1], maxSingle[1], "y");
                 singleScale[2] = SingleScaleSlider(singleScale[2], minSingle[2], maxSingle[2], "z");
+                if (UICought && lastSnap > 0.0001f && originalScales.Count==1)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        singleScale[i] = originalScales[0][i] + lastSnap * (Mathf.Round((singleScale[i] - originalScales[0][i]) / lastSnap));
+                        if (singleScale[i] < 0) singleScale[i] = 0;
+                    }
+                }
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("copy", GUILayout.Width(50)))
                 {
@@ -144,13 +180,15 @@ namespace HardScale
                     {
                         LogPreState();
                         for (int i = 0; i < 3; i++) singleScale[i] = Convert.ToSingle(clipBoard[i]);
+                        DoSingleScale(singleScale);
                         UpdatePostState();
                     }
                     catch (Exception) { };
                 }
                 for (int i = 0; i < 3; i++) clipBoard[i] = GUILayout.TextField(clipBoard[i]);
                 GUILayout.EndHorizontal();
-                DoSingleScale(singleScale);
+                if (UICought)
+                    DoSingleScale(singleScale);
             }
             GUILayout.EndVertical();
             GUI.DragWindow();
@@ -186,16 +224,33 @@ namespace HardScale
         }
         void UpdatePostState()
         {
-            //ModConsole.Log("add undo ");
-            List<UndoAction> undoActions = new List<UndoAction>();
-            for(int i=0; i<originalSelection.Count; i++)
+            bool addUndo = true;
+            if (originalScales.Count == 1)
             {
-                var bb = originalSelection[i] as BlockBehaviour;
-                var a = new UndoActionScale(Machine.Active(), bb.Guid, bb.Position, originalPositions[i], bb.Scale, originalScales[i]);
-                undoActions.Add(a);
+                var bb = originalSelection[0] as BlockBehaviour;
+                if (originalScales[0] == bb.Scale)
+                    addUndo = false;
             }
+            else
+            {
+                if (aScale == 1) addUndo = false;
+            }
+            if (addUndo)
+            {
+                //ModConsole.Log("addundo");
+                List<UndoAction> undoActions = new List<UndoAction>();
+                for (int i = 0; i < originalSelection.Count; i++)
+                {
+                    var bb = originalSelection[i] as BlockBehaviour;
+                    var a = new UndoActionScale(Machine.Active(), bb.Guid, bb.Position, originalPositions[i], bb.Scale, originalScales[i]);
+                    undoActions.Add(a);
+                }
+                Machine.Active().UndoSystem.AddActions(undoActions);
+            }
+            originalPositions.Clear();
+            originalScales.Clear();
+            originalSelection.Clear();
 
-            Machine.Active().UndoSystem.AddActions(undoActions);
             aScale = 1;
         }
 
