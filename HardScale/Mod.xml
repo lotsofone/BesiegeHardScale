@@ -9,7 +9,8 @@
 	<Name>HardScale</Name>
 	<Author>渔夫lotsofone</Author> <!-- FIX: Insert your name here. -->
 	<!-- Major.Minor.Build -->
-	<Version>0.2.0</Version>
+	<Version>0.2.3</Version>
+	<Debug>false</Debug>
 	
 	<Description>
 Used to scale blocks. Able to scale multiple blocks together.
@@ -40,7 +41,6 @@ Select some blocks with advanced building to get started. Not compatible with Ea
 		 Important: You cannot upload mods to Steam or WeGame while Debug is turned on.
 		 
 		 Note: This value is independent of the Debug values for specific Blocks and Entities.-->
-	<Debug>false</Debug>
 	
 	<!-- Whether the mod can be used in MP or only in SP.
 		 SP-only mods are easier to write but obviously more limited in their uses.
@@ -111,7 +111,8 @@ Select some blocks with advanced building to get started. Not compatible with Ea
 	
 	<!-- Access these keys using the ModKeys class. -->
 	<Keys>
-		
+		<Key name="lto_hardscale_copy" defaultModifier="LeftControl" defaultTrigger="C" />
+		<Key name="lto_hardscale_paste" defaultModifier="LeftControl" defaultTrigger="V" />
 	</Keys>
 	
 	<!-- The mod loader will automatically make all resources listed here available

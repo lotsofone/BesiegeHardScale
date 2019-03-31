@@ -13,6 +13,15 @@ namespace HardScale
     {
         public bool showGUI { get; private set; } = false;
         private bool multiScale = false;
+        private ModKey copyKey;
+        private ModKey pasteKey;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            this.copyKey = ModKeys.GetKey("lto_hardscale_copy");
+            this.pasteKey = ModKeys.GetKey("lto_hardscale_paste");
+        }
 
         public override string InitialWindowName()
         {
@@ -21,7 +30,7 @@ namespace HardScale
 
         public override Rect InitialWindowRect()
         {
-            return new Rect(Screen.width - 300-200, Screen.height - 160-200, 300, 160);
+            return new Rect(Screen.width - 300 - 200, Screen.height - 160 - 200, 300, 160);
         }
 
         public override bool ShouldShowGUI()
@@ -89,12 +98,12 @@ namespace HardScale
         float aScale = 1;
         string aScaleText = "1";
         Vector3 singleScale, maxSingle, minSingle;
-        string[] clipBoard = new string[]{"1", "1", "1"};
+        string[] clipBoard = new string[] { "1", "1", "1" };
 
         protected bool lastMouseDown = false;
         protected override void WindowContent(int windowID)
         {
-            if (lastMouseDown!=Input.GetMouseButton(0))
+            if (lastMouseDown != Input.GetMouseButton(0))
             {
                 lastMouseDown = Input.GetMouseButton(0);
                 if (lastMouseDown) MouseDown();
@@ -120,9 +129,9 @@ namespace HardScale
                 aScale = GUILayout.HorizontalSlider(aScale, 0.1f, 10f, GUILayout.Width(300));
                 if (UICought && lastSnap > 0.0001f)
                 {
-                    aScale = 1+lastSnap*(Mathf.Round((aScale - 1) / lastSnap));
+                    aScale = 1 + lastSnap * (Mathf.Round((aScale - 1) / lastSnap));
                 }
-                if(UICought && originalScales.Count>0)
+                if (UICought && originalScales.Count > 0)
                     DoMultiScale(aScale);
                 GUILayout.Label("scale by value");
                 GUILayout.BeginHorizontal();
@@ -148,12 +157,12 @@ namespace HardScale
                     var bb = (BlockBehaviour)AdvancedBlockEditor.Instance.selectionController.Selection[0];
                     singleScale = bb.transform.localScale;
                 }
-                
+
                 if (!lastMouseDown)
                 {
                     minSingle = singleScale * 0.1f;
                     maxSingle = singleScale * 3;
-                    for (int i=0; i<3; i++)
+                    for (int i = 0; i < 3; i++)
                     {
                         if (maxSingle[i] < 0.1f) maxSingle[i] = 0.1f;
                     }
@@ -161,7 +170,7 @@ namespace HardScale
                 singleScale[0] = SingleScaleSlider(singleScale[0], minSingle[0], maxSingle[0], "x");
                 singleScale[1] = SingleScaleSlider(singleScale[1], minSingle[1], maxSingle[1], "y");
                 singleScale[2] = SingleScaleSlider(singleScale[2], minSingle[2], maxSingle[2], "z");
-                if (UICought && lastSnap > 0.0001f && originalScales.Count==1)
+                if (UICought && lastSnap > 0.0001f && originalScales.Count == 1)
                 {
                     for (int i = 0; i < 3; i++)
                     {
@@ -169,12 +178,16 @@ namespace HardScale
                         if (singleScale[i] < 0) singleScale[i] = 0;
                     }
                 }
+                if(StatMaster.Mode.selectedTool != StatMaster.Tool.Modify)
+                    GUILayout.Label("paste bin: (ctrl+C/ctrl+V)");
+                else
+                    GUILayout.Label("paste bin: (hotkey disabled)");
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("copy", GUILayout.Width(50)))
+                if (GUILayout.Button("copy", GUILayout.Width(50)) || (copyKey.IsPressed && StatMaster.Mode.selectedTool != StatMaster.Tool.Modify))
                 {
                     for (int i = 0; i < 3; i++) clipBoard[i] = singleScale[i].ToString();
                 }
-                if (GUILayout.Button("paste", GUILayout.Width(50)))
+                if (GUILayout.Button("paste", GUILayout.Width(50)) || (pasteKey.IsPressed && StatMaster.Mode.selectedTool != StatMaster.Tool.Modify))
                 {
                     try
                     {
@@ -263,11 +276,33 @@ namespace HardScale
             GUILayout.EndHorizontal();
             return ret;
         }
-
+        public readonly static string[] killMappers = new string[]{"x-scale", "y-scale", "z-scale", "scaling" };
         void DoSingleScale(Vector3 scale)
         {
             var bb = (BlockBehaviour)AdvancedBlockEditor.Instance.selectionController.Selection[0];
             bb.SetScale(scale);
+            //have tried to make compatibla with easy scale, but failed
+            /*foreach (var slider in bb.Sliders)
+            {
+                if (slider.Key == "x-scale")
+                {
+                    slider.SetValue(scale[0]);
+                    slider.Value = scale[0];
+                    slider.ApplyValue();
+                }
+                else if (slider.Key == "y-scale")
+                {
+                    slider.SetValue(scale[1]);
+                    slider.Value = scale[1];
+                    slider.ApplyValue();
+                }
+                else if (slider.Key == "z-scale")
+                {
+                    slider.SetValue(scale[2]);
+                    slider.Value = scale[2];
+                    slider.ApplyValue();
+                }
+            }*/
         }
 
         void DoMultiScale(float multiplier)
@@ -281,6 +316,29 @@ namespace HardScale
                 BlockBehaviour bb = this.originalSelection[i] as BlockBehaviour;
                 bb.SetPosition((Machine.Active().BuildingMachine.TransformPoint(originalPositions[i]) - pivot.position) * multiplier + pivot.position);
                 bb.SetScale(originalScales[i] * multiplier);
+                //have tried to make compatibla with easy scale, but failed
+                /*foreach (var slider in bb.Sliders)
+                {
+                    if (slider.Key == "x-scale")
+                    {
+                        slider.SetValue(originalScales[i][0] * multiplier);
+                        slider.Value = originalScales[i][0] * multiplier;
+                        slider.ApplyValue();
+
+                    }
+                    else if (slider.Key == "y-scale")
+                    {
+                        slider.SetValue(originalScales[i][1] * multiplier);
+                        slider.Value = originalScales[i][1] * multiplier;
+                        slider.ApplyValue();
+                    }
+                    else if (slider.Key == "z-scale")
+                    {
+                        slider.SetValue(originalScales[i][2] * multiplier);
+                        slider.Value = originalScales[i][2] * multiplier;
+                        slider.ApplyValue();
+                    }
+                }*/
             }
         }
     }
