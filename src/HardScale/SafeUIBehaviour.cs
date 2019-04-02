@@ -7,7 +7,7 @@ using Modding;
 
 namespace HardScale
 {
-    //v0.3.1
+    //v0.3.2
     abstract class SafeUIBehaviour : MonoBehaviour
     {
         public Rect windowRect;
@@ -54,6 +54,10 @@ namespace HardScale
         void OnDisable()
         {
             background.SetActive(false);
+        }
+        void OnDestroy()
+        {
+            GameObject.Destroy(this.background);
         }
         protected abstract void WindowContent(int windowID);
         public abstract bool ShouldShowGUI();

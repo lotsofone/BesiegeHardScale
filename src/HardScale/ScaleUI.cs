@@ -178,7 +178,7 @@ namespace HardScale
                         if (singleScale[i] < 0) singleScale[i] = 0;
                     }
                 }
-                if(StatMaster.Mode.selectedTool != StatMaster.Tool.Modify)
+                if (StatMaster.Mode.selectedTool != StatMaster.Tool.Modify)
                     GUILayout.Label("paste bin: (ctrl+C/ctrl+V)");
                 else
                     GUILayout.Label("paste bin: (hotkey disabled)");
@@ -203,7 +203,12 @@ namespace HardScale
                 if (UICought)
                     DoSingleScale(singleScale);
             }
+            if (GameObject.Find("EasyScale") != null)
+            {
+                GUILayout.TextArea("Detected Easy Scale Mod enabled. This mod is not compatible with Easy Scale. Please only turn on one of us at a time.", GUILayout.Width(300));
+            }
             GUILayout.EndVertical();
+
             GUI.DragWindow();
         }
         bool UICought = false;
@@ -270,7 +275,7 @@ namespace HardScale
         protected float SingleScaleSlider(float value, float min, float max, string name)
         {
             GUILayout.BeginHorizontal();
-            float ret = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(230));
+            float ret = GUILayout.HorizontalSlider(value, min, max, GUILayout.Width(220));
             GUILayout.Label(name);
             GUILayout.Label(ret.ToString(), GUILayout.Width(60));
             GUILayout.EndHorizontal();
