@@ -203,10 +203,11 @@ namespace HardScale
                 if (UICought)
                     DoSingleScale(singleScale);
             }
+            /*
             if (GameObject.Find("EasyScale") != null)
             {
                 GUILayout.TextArea("Detected Easy Scale Mod enabled. This mod is not compatible with Easy Scale. Please only turn on one of us at a time.", GUILayout.Width(300));
-            }
+            }*/
             GUILayout.EndVertical();
 
             GUI.DragWindow();
@@ -262,6 +263,26 @@ namespace HardScale
                     var bb = originalSelection[i] as BlockBehaviour;
                     var a = new UndoActionScale(Machine.Active(), bb.Guid, bb.Position, originalPositions[i], bb.Scale, originalScales[i]);
                     undoActions.Add(a);
+                    //to make compatibla with easy scale, but failed
+                    if (GameObject.Find("EasyScale") != null)
+                    {
+                        foreach (var slider in bb.Sliders)
+                        {
+                            if (slider.Key == "x-scale")
+                            {
+                                slider.SetValue(bb.Scale[0]);
+                            }
+                            else if (slider.Key == "y-scale")
+                            {
+                                slider.SetValue(bb.Scale[1]);
+                            }
+                            else if (slider.Key == "z-scale")
+                            {
+                                slider.SetValue(bb.Scale[2]);
+                            }
+                        }
+                        bb.OnSave(new XDataHolder());
+                    }
                 }
                 Machine.Active().UndoSystem.AddActions(undoActions);
             }
@@ -286,28 +307,6 @@ namespace HardScale
         {
             var bb = (BlockBehaviour)AdvancedBlockEditor.Instance.selectionController.Selection[0];
             bb.SetScale(scale);
-            //have tried to make compatibla with easy scale, but failed
-            /*foreach (var slider in bb.Sliders)
-            {
-                if (slider.Key == "x-scale")
-                {
-                    slider.SetValue(scale[0]);
-                    slider.Value = scale[0];
-                    slider.ApplyValue();
-                }
-                else if (slider.Key == "y-scale")
-                {
-                    slider.SetValue(scale[1]);
-                    slider.Value = scale[1];
-                    slider.ApplyValue();
-                }
-                else if (slider.Key == "z-scale")
-                {
-                    slider.SetValue(scale[2]);
-                    slider.Value = scale[2];
-                    slider.ApplyValue();
-                }
-            }*/
         }
 
         void DoMultiScale(float multiplier)
@@ -321,29 +320,6 @@ namespace HardScale
                 BlockBehaviour bb = this.originalSelection[i] as BlockBehaviour;
                 bb.SetPosition((Machine.Active().BuildingMachine.TransformPoint(originalPositions[i]) - pivot.position) * multiplier + pivot.position);
                 bb.SetScale(originalScales[i] * multiplier);
-                //have tried to make compatibla with easy scale, but failed
-                /*foreach (var slider in bb.Sliders)
-                {
-                    if (slider.Key == "x-scale")
-                    {
-                        slider.SetValue(originalScales[i][0] * multiplier);
-                        slider.Value = originalScales[i][0] * multiplier;
-                        slider.ApplyValue();
-
-                    }
-                    else if (slider.Key == "y-scale")
-                    {
-                        slider.SetValue(originalScales[i][1] * multiplier);
-                        slider.Value = originalScales[i][1] * multiplier;
-                        slider.ApplyValue();
-                    }
-                    else if (slider.Key == "z-scale")
-                    {
-                        slider.SetValue(originalScales[i][2] * multiplier);
-                        slider.Value = originalScales[i][2] * multiplier;
-                        slider.ApplyValue();
-                    }
-                }*/
             }
         }
     }
